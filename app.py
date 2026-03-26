@@ -1,87 +1,55 @@
 import streamlit as st
 import google.generativeai as genai
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="AI Productivity Planner",
-    page_icon="📅",
-    layout="centered"
-)
+# Page setup
+st.set_page_config(page_title="AI Productivity Planner", page_icon="📅")
 
-# ---------------- TITLE ----------------
 st.title("📅 AI Productivity Planner")
-st.write("Plan smarter. Stay productive. Let AI guide you.")
 
-# ---------------- SIDEBAR ----------------
-st.sidebar.header("🔑 Enter Gemini API Key")
-api_key = st.sidebar.text_input("API Key", type="password")
+# Sidebar
+api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
 
 if api_key:
     try:
-        # Configure API
         genai.configure(api_key=api_key)
 
-        # ✅ WORKING MODEL NAME
-        model = genai.GenerativeModel("models/gemini-1.5-flash")
+        # ✅ MOST STABLE MODEL (WORKS NOW)
+        model = genai.GenerativeModel("gemini-1.5-pro-latest")
 
-        st.sidebar.success("✅ Connected successfully!")
+        st.sidebar.success("Connected ✅")
 
-        # ---------------- INPUT ----------------
-        user_input = st.text_area(
-            "✨ What do you want to plan?",
-            placeholder="e.g., Plan my study schedule for exams in 5 days",
-            height=120
-        )
+        user_input = st.text_area("What do you want to plan?")
 
-        # ---------------- BUTTON ----------------
-        if st.button("🚀 Generate Plan", use_container_width=True):
-
+        if st.button("Generate Plan"):
             if user_input:
-                with st.spinner("🤖 Generating your plan..."):
+                with st.spinner("Generating..."):
 
                     prompt = f"""
-                    Create a structured, realistic and practical plan for: "{user_input}"
+                    Create a simple structured plan for: {user_input}
 
-                    Format strictly like:
-
+                    Format:
                     Day 1:
-                    - Task 1 (time)
-                    - Task 2 (time)
+                    - Task 1
+                    - Task 2
 
                     Day 2:
-                    - Task 1 (time)
-                    - Task 2 (time)
-
-                    Keep it simple, actionable, and time-bound.
+                    - Task 1
+                    - Task 2
                     """
 
-                    try:
-                        response = model.generate_content(prompt)
-                        st.subheader("📋 Your Plan")
-                        st.success("✅ Plan generated successfully!")
-                        st.write(response.text)
+                    response = model.generate_content(prompt)
 
-                    except Exception as e:
-                        st.error(f"❌ Error: {str(e)}")
+                    st.subheader("Your Plan")
+                    st.write(response.text)
 
             else:
-                st.warning("⚠️ Please enter your goal first!")
+                st.warning("Enter something!")
 
     except Exception as e:
-        st.sidebar.error(f"❌ Invalid API Key: {str(e)}")
+        st.error(f"Error: {str(e)}")
 
 else:
-    st.info("""
-    🔑 **Get your FREE Gemini API key:**
-    
-    👉 https://aistudio.google.com/app/apikey
-    
-    Paste it in the sidebar and start 🚀
-    """)
+    st.info("Enter API key to start")
 
-# ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown(
-    "<p style='text-align:center; color:grey;'>Built with ❤️ using Streamlit + Gemini</p>",
-    unsafe_allow_html=True
-                    )
+st.markdown("Built with ❤️ using Streamlit + Gemini")
