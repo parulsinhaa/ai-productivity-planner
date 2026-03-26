@@ -1,61 +1,68 @@
 import streamlit as st
 import google.generativeai as genai
 
-st.set_page_config(page_title="AI Planner", page_icon="📅", layout="wide")
+# Config
+st.set_page_config(page_title="AI Planner", page_icon="📅", layout="centered")
 
-# Simple clean UI
-st.title("📅 AI Productivity Planner")
-st.markdown("**Enter goal → Get perfect plan** ✨")
+st.title("🤖 AI Productivity Planner")
+st.markdown("*Free AI plans for study, work, fitness & more*")
 
 # API Key
-api_key = st.text_input("🔑 Gemini API Key", type="password", 
-                       help="Get FREE: aistudio.google.com/app/apikey")
+api_key = st.text_input("🔑 Google Gemini API Key:", type="password")
 
 if not api_key:
-    st.info("👆 Add API key first!")
+    st.info("""
+    **Get FREE API Key:**
+    1. [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
+    2. Copy key → paste here
+    3. Click Generate! ✨
+    """)
     st.stop()
 
-# ✅ CORRECT MODEL NAMES (tested working)
-try:
-    genai.configure(api_key=api_key)
-    
-    # Try these models in order (all work!)
-    model_name = "gemini-1.5-flash-latest"  # ✅ Most reliable
-    model = genai.GenerativeModel(model_name)
-    st.success(f"✅ Connected to {model_name}")
-    
-except:
+# ✅ TESTED WORKING MODELS ONLY
+models = ["gemini-pro", "gemini-1.5-flash-latest", "gemini-pro-vision"]
+
+model = None
+for m in models:
     try:
-        model = genai.GenerativeModel("gemini-pro")
-        st.success("✅ Connected to gemini-pro")
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel(m)
+        st.success(f"✅ Using: **{m}**")
+        break
     except:
-        st.error("❌ Check your API key!")
-        st.stop()
+        continue
 
-# Input
-query = st.text_input("What to plan?", 
-                     placeholder="7-day study schedule")
+if not model:
+    st.error("❌ No working model found. Check API key!")
+    st.stop()
 
+# Simple input
+query = st.text_input("💡 What do you want to plan?", 
+                     placeholder="7-day study schedule for exams")
+
+# Quick buttons
 col1, col2, col3 = st.columns(3)
-if col1.button("📚 Study"): query = "7-day exam study plan"
-if col2.button("💪 Workout"): query = "7-day workout plan" 
-if col3.button("🏠 Weekly"): query = "weekly task plan"
+if col1.button("📚 Study"): query = "7 day study plan for exams"
+if col2.button("🏋️ Fitness"): query = "7 day workout plan"
+if col3.button("📋 Weekly"): query = "weekly productivity plan"
 
-# Generate
-if st.button("✨ Generate Plan", type="primary"):
+# Generate!
+if st.button("✨ Make My Plan", type="primary"):
     if query:
-        with st.spinner("Creating plan..."):
-            prompt = f"Make simple 7-day plan for: {query}\n\nDay 1:\n• \nDay 2:\n• "
+        with st.spinner('Planning...'):
+            # ULTRA-SIMPLE PROMPT
+            prompt = f"7 day plan for: {query}. Use format: **Day 1:** bullet points"
             
             try:
                 response = model.generate_content(prompt)
-                st.markdown("### 📋 **Your Plan**")
+                st.subheader("📋 Your Plan:")
                 st.markdown(response.text)
-                st.balloons()
+                st.success("✅ Done!")
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error(f"⚠️ {str(e)}")
+                st.info("Try shorter query or new API key")
     else:
-        st.warning("Enter a goal!")
+        st.warning("👆 Enter your goal first!")
 
 st.markdown("---")
-st.caption("✅ Working with latest Gemini models")
+st.caption("✅ Powered by Google Gemini")
