@@ -1,55 +1,89 @@
 import streamlit as st
 import google.generativeai as genai
+import os
 
-# Page setup
-st.set_page_config(page_title="AI Productivity Planner", page_icon="📅")
+# Page config
+st.set_page_config(
+    page_title="AI Productivity Planner",
+    page_icon="📅",
+    layout="wide"
+)
 
-st.title("📅 AI Productivity Planner")
+# Custom CSS
+st.markdown("""
+<style>
+.main-header {font-size:3rem;color:#1f77b4;text-align:center;margin-bottom:2rem;font-weight:bold;}
+.sub-header {font-size:1.2rem;color:#666;text-align:center;margin-bottom:2rem;}
+.plan-container {background:#f8f9fa;padding:2rem;border-radius:15px;border-left:5px solid #1f77b4;}
+</style>
+""", unsafe_allow_html=True)
 
-# Sidebar
-api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
+# Header
+st.markdown('<h1 class="main-header">📅 AI Productivity Planner</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-header">Get your perfect plan in seconds!</p>', unsafe_allow_html=True)
 
-if api_key:
-    try:
-        genai.configure(api_key=api_key)
+# API Key input
+api_key = st.sidebar.text_input("🔑 Google Gemini API Key", type="password",
+                               help="Get FREE key: aistudio.google.com/app/apikey")
 
-        # ✅ MOST STABLE MODEL (WORKS NOW)
-        model = genai.GenerativeModel("gemini-1.5-pro-latest")
+if not api_key:
+    st.info("""
+    ## 🚀 Quick Start:
+    1. Get **FREE** API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+    2. Paste in sidebar
+    3. Generate your plan! ✨
+    """)
+    st.stop()
 
-        st.sidebar.success("Connected ✅")
+# Configure Gemini
+try:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    st.sidebar.success("✅ Connected!")
+except:
+    st.error("❌ Invalid API Key")
+    st.stop()
 
-        user_input = st.text_area("What do you want to plan?")
+# Main UI
+col1, col2 = st.columns([3,1])
 
-        if st.button("Generate Plan"):
-            if user_input:
-                with st.spinner("Generating..."):
+with col1:
+    query = st.text_area("What to plan?", 
+                        placeholder="Plan my 7-day study schedule for exams",
+                        height=100)
 
-                    prompt = f"""
-                    Create a simple structured plan for: {user_input}
+with col2:
+    st.markdown("### 💡 Examples")
+    if st.button("📚 Study"): query = "7-day exam study plan"
+    if st.button("💪 Workout"): query = "7-day beginner workout"
+    if st.button("🏠 Weekly"): query = "weekly chores + meals"
 
-                    Format:
-                    Day 1:
-                    - Task 1
-                    - Task 2
+if st.button("✨ Generate Plan", type="primary"):
+    if query:
+        with st.spinner("Creating your plan..."):
+            prompt = f'''Create productivity plan for: "{query}"
 
-                    Day 2:
-                    - Task 1
-                    - Task 2
-                    """
+**FORMAT EXACTLY LIKE:**
+**Day 1: Title**
+- Task 1 - 90min - details
+- Task 2 - 30min - details
 
-                    response = model.generate_content(prompt)
+**Day 2: Title**
+- etc...
 
-                    st.subheader("Your Plan")
-                    st.write(response.text)
+Realistic times + breaks. Use • bullets only.'''
+            
+            response = model.generate_content(prompt)
+            plan = response.text.strip()
+            
+            st.markdown('<div class="plan-container">', unsafe_allow_html=True)
+            st.markdown("### 📋 **Your Plan**")
+            st.markdown(plan)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.success("✅ Done!")
+            st.balloons()
 
-            else:
-                st.warning("Enter something!")
-
-    except Exception as e:
-        st.error(f"Error: {str(e)}")
-
-else:
-    st.info("Enter API key to start")
-
+# Footer
 st.markdown("---")
-st.markdown("Built with ❤️ using Streamlit + Gemini")
+st.markdown("<p style='text-align:center;color:#666;'>Made with ❤️ | Gemini 1.5 Flash</p>", unsafe_allow_html=True)
