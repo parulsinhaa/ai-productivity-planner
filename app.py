@@ -1,6 +1,5 @@
 import streamlit as st
 import google.generativeai as genai
-import time
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -9,109 +8,75 @@ st.set_page_config(
     layout="centered"
 )
 
-# ---------------- STYLING ----------------
-st.markdown("""
-    <style>
-    .main-title {
-        font-size: 2.8rem;
-        text-align: center;
-        color: #4CAF50;
-        font-weight: bold;
-    }
-    .subtitle {
-        text-align: center;
-        color: grey;
-        margin-bottom: 20px;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # ---------------- TITLE ----------------
-st.markdown('<p class="main-title">📅 AI Productivity Planner</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Plan smarter. Stay productive. Let AI guide you.</p>', unsafe_allow_html=True)
+st.title("📅 AI Productivity Planner")
+st.write("Plan smarter. Stay productive. Let AI guide you.")
 
 # ---------------- SIDEBAR ----------------
-st.sidebar.header("⚙️ Configuration")
-api_key = st.sidebar.text_input("Enter Gemini API Key", type="password")
+st.sidebar.header("🔑 Enter Gemini API Key")
+api_key = st.sidebar.text_input("API Key", type="password")
 
 if api_key:
     try:
+        # Configure API
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        st.sidebar.success("✅ Gemini Connected")
-    except:
-        st.sidebar.error("❌ Invalid API Key")
-        st.stop()
 
-    # ---------------- INPUT ----------------
-    user_input = st.text_area(
-        "✨ What do you want to plan?",
-        placeholder="e.g., Plan my study schedule for exams in 5 days",
-        height=120
-    )
+        # ✅ WORKING MODEL NAME
+        model = genai.GenerativeModel("models/gemini-1.5-flash")
 
-    # Example buttons
-    st.markdown("### 💡 Try Examples")
-    col1, col2 = st.columns(2)
+        st.sidebar.success("✅ Connected successfully!")
 
-    with col1:
-        if st.button("📚 Study Plan"):
-            user_input = "Plan my study schedule for final exams in 7 days"
+        # ---------------- INPUT ----------------
+        user_input = st.text_area(
+            "✨ What do you want to plan?",
+            placeholder="e.g., Plan my study schedule for exams in 5 days",
+            height=120
+        )
 
-    with col2:
-        if st.button("💪 Workout Plan"):
-            user_input = "Create a 7-day beginner workout plan"
+        # ---------------- BUTTON ----------------
+        if st.button("🚀 Generate Plan", use_container_width=True):
 
-    # ---------------- GENERATE BUTTON ----------------
-    if st.button("🚀 Generate Plan", use_container_width=True):
+            if user_input:
+                with st.spinner("🤖 Generating your plan..."):
 
-        if user_input:
-            with st.spinner("🤖 AI is generating your plan..."):
+                    prompt = f"""
+                    Create a structured, realistic and practical plan for: "{user_input}"
 
-                prompt = f"""
-                Create a structured, realistic, and actionable plan for: "{user_input}"
+                    Format strictly like:
 
-                Format strictly like:
+                    Day 1:
+                    - Task 1 (time)
+                    - Task 2 (time)
 
-                Day 1:
-                - Task 1 (time)
-                - Task 2 (time)
+                    Day 2:
+                    - Task 1 (time)
+                    - Task 2 (time)
 
-                Day 2:
-                - Task 1 (time)
-                - Task 2 (time)
+                    Keep it simple, actionable, and time-bound.
+                    """
 
-                Keep it concise, practical, and include breaks where needed.
-                """
+                    try:
+                        response = model.generate_content(prompt)
+                        st.subheader("📋 Your Plan")
+                        st.success("✅ Plan generated successfully!")
+                        st.write(response.text)
 
-                try:
-                    response = model.generate_content(prompt)
-                    plan = response.text
+                    except Exception as e:
+                        st.error(f"❌ Error: {str(e)}")
 
-                    # Display Output
-                    st.subheader("📋 Your Personalized Plan")
-                    st.success("Plan generated successfully!")
+            else:
+                st.warning("⚠️ Please enter your goal first!")
 
-                    st.markdown(plan)
-
-                    # Copy option
-                    with st.expander("📋 Copy Plan"):
-                        st.code(plan)
-
-                except Exception as e:
-                    st.error(f"Error: {str(e)}")
-
-        else:
-            st.warning("⚠️ Please enter your goal first!")
+    except Exception as e:
+        st.sidebar.error(f"❌ Invalid API Key: {str(e)}")
 
 else:
     st.info("""
-    🔑 **Get Started:**
+    🔑 **Get your FREE Gemini API key:**
     
-    1. Go to https://aistudio.google.com/app/apikey  
-    2. Generate your FREE Gemini API Key  
-    3. Paste it in the sidebar  
-    4. Start planning 🚀
+    👉 https://aistudio.google.com/app/apikey
+    
+    Paste it in the sidebar and start 🚀
     """)
 
 # ---------------- FOOTER ----------------
@@ -119,4 +84,4 @@ st.markdown("---")
 st.markdown(
     "<p style='text-align:center; color:grey;'>Built with ❤️ using Streamlit + Gemini</p>",
     unsafe_allow_html=True
-                )
+                    )
